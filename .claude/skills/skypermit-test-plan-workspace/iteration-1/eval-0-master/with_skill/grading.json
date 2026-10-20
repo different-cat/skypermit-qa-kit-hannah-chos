@@ -1,0 +1,101 @@
+{
+  "expectations": [
+    {
+      "text": "Кожен тестовий сценарій має посилання на джерело (файл docs + розділ)",
+      "passed": true,
+      "evidence": "Усі 167 рядків TS-* мають колонку «Джерело». 154/167 (~92%) містять файл + розділ/endpoint/§ (напр. TS-GA-01 «`06` §1.2, §6; `07` п.1», TS-GZ-06 «`05` §2»). 13 рядків мають лише файл без розділу: TS-REG-11 «`01` (unique)», TS-ZREF-05 «`03` (не визначено)», TS-SM-05/06/11, TS-CAN-04, TS-CMP-02 «`02`», TS-SM-08 «`02`; `01`», TS-UIO-09, TS-UIR-03, TS-TID-05 «`04`», TS-UIR-05 «`04`; `02`». Для SM-рядків розділ неявно задано підзаголовком «Легальні переходи (таблиця `02`)»; TS-PIPE-02..07 використовують «там само». Частка без розділу (~8%) невелика — PASS з застереженням."
+    },
+    {
+      "text": "Статус-код/тіло для SUSPENDED оператора не задано як очікуваний результат — позначено заблокованим через 05 (OQ-4)",
+      "passed": true,
+      "evidence": "TS-SUSP-03/04/05: «Blocked (OQ-4) — не визначено, див. `05` §1» для create/submit/approve. TS-SUSP-01 перевіряє лише задокументовану негативну вимогу «не 422 з failing_gate» (05 §1, 07 п.3). Розділ 10: «`03` пропонує `403`, але `05` вважає це лише заглушкою»."
+    },
+    {
+      "text": "Цитата rule_reference для неактивної зони позначена як не підтверджена/заблокована (05 №5), а саме правило тестується",
+      "passed": true,
+      "evidence": "TS-GZ-05 (Ready): неактивна зона → 422, failing_gate: ZONE. TS-GZ-06: «Неактивна зона — дослівне значення rule_reference … Blocked (OQ-5)». Розділ 10 OQ-5: «саме правило вже тестується в TS-GZ-05»."
+    },
+    {
+      "text": "Покрито нелегальні переходи стану → 409 (включно з повторним submit з UNDER_REVIEW і термінальними станами)",
+      "passed": true,
+      "evidence": "TS-SM-09..15: DRAFT approve/reject/complete; TS-SM-10 «UNDER_REVIEW: повторний submit, complete → 409»; TS-SM-11 APPROVED submit/approve/reject; TS-SM-12/13/14 REJECTED/CANCELLED/COMPLETED → усі дії 409; TS-SM-15 перевіряє відсутність побічних ефектів. COMPLETED позначено Needs clarification (F-13) через відсутність maintenance endpoint у 03 — обґрунтовано."
+    },
+    {
+      "text": "Є сценарій, що validate не змінює стан заявки",
+      "passed": true,
+      "evidence": "TS-VAL-01 (стан лишається DRAFT, submitted_at порожній, failing_gate не записано, немає AuditLog), TS-VAL-02, TS-VAL-03 (5 викликів без побічних ефектів), TS-UIO-07, TS-AUD-05; також критерій призупинення «validate змінює стан»."
+    },
+    {
+      "text": "Weight band очікує failing_gate AIRCRAFT, а не ZONE",
+      "passed": true,
+      "evidence": "TS-GA-01: «C3 (12 001 г) у KBP-CTR-3 / ODS-CTR-5 → 422, failing_gate: AIRCRAFT (не ZONE), rule_reference: \"ZC-2026.1 §2\"» з посиланням на 07 п.1; TS-PIPE-04/09 узгоджені."
+    },
+    {
+      "text": "План не використовує superseded значення (24 міс., межа 4000 г) як очікувані",
+      "passed": true,
+      "evidence": "24 міс. і 4 000 г з'являються лише в регресійних сценаріях «не застосовується»: TS-GP-07 (certified_on −20 міс. → fail PILOT), TS-REG-05 (3 700 і 4 000 г → C2, не C1), TS-GA-03 (3 700 г у LVV-RST-2 → fail AIRCRAFT). Очікувані пороги — 18 міс. і 3 500 г."
+    },
+    {
+      "text": "Є розділ знахідок у документації, що містить суперечність 03 (403 для SUSPENDED) vs 05 (не визначено)",
+      "passed": true,
+      "evidence": "Розділ 11 «Знахідки в документації», F-1: «`03` подає `403` як відповідь на SUSPENDED-precondition, ніби це вирішено; `05` каже, що статус-код не визначено, `403` — лише заглушка | `03` Error semantics vs `05` §1 / row 4». Перевірено: 03 Error semantics справді відносить SUSPENDED до 403."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  },
+  "claims": [
+    {
+      "claim": "TS-REV-05: approve/reject без X-Reviewer-Id → 400, статус Ready",
+      "type": "factual",
+      "verified": false,
+      "evidence": "Значення 400 є в 03 Reviewer, але 03 Error semantics каже, що 401 = «no session, no reviewer header». План сам фіксує цю суперечність у F-16, але сценарій лишає Ready з очікуваним 400 замість Needs clarification — внутрішня непослідовність, не вигадка."
+    },
+    {
+      "claim": "TS-REV-06: approve з необов'язковим note → APPROVED",
+      "type": "factual",
+      "verified": false,
+      "evidence": "01 каже лише, що note обов'язковий для REJECT; 03 не описує, що endpoint approve приймає note. Очікування, що approve з note успішний, — невелике домислення поведінки, якої docs не описують (позначено Ready, P3)."
+    },
+    {
+      "claim": "TS-SUSP-02 (Ready): SUSPENDED оператор — create не створює заявку, submit/approve не змінюють стан",
+      "type": "factual",
+      "verified": true,
+      "evidence": "05 §1/07 п.3: precondition on write operations, «request is blocked». Висновок про відсутність зміни стану обґрунтований; код/тіло коректно Blocked."
+    },
+    {
+      "claim": "Spot-check 15 конкретних значень: каталог зон (стелі 120/90/60/45/120/120, bands, рівні L2/L2/L3/L3/L1/L1, curfew A-7 23:00–05:00 для KBP/ODS, 22:00–06:00 для LVV/ZTM), межі ваги 900/3500/12000/30000, 30 001 → 422 OH-1 §3, currency 18 міс. OH-1 §2.3, lead 6 год TSD-4 §2.1, advance 60 днів TSD-4 §2.2, тривалість 15–240 TSD-4 §3, curfew-цитати A-7 §1 / ZC-2026.1 §3, overlap TSD-4 §5, auth OH-1 §4, altitude ZC-2026.1 §2, cancel 2 год → 409, підсумок 167/123/4/40, commit 78407f1",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Усе збігається з 06 §1–§6, 02, 03; кількість сценаріїв і розподіл по пріоритетах перераховано grep-ом — збігається з розділом 12; git log ../skypermit показує 78407f1. Фактичних помилок у порогах/цитатах не знайдено."
+    },
+    {
+      "claim": "F-12: 08 показує submit як «200/201 with new state», а validate як «200 with per-gate results»",
+      "type": "factual",
+      "verified": true,
+      "evidence": "08-uml-diagrams.md рядки 191, 193 — дослівно так."
+    }
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [
+      "TS-REV-05 Ready з очікуваним 400 попри власну знахідку F-16 (400 vs 401)",
+      "13 рядків з посиланням лише на файл без розділу (переважно `02` і `04`)"
+    ],
+    "workarounds": [
+      "Curfew-сценарії обрано так, щоб бути коректними за будь-якого зміщення UTC+0…+3, бо часовий пояс зон не визначено (F-5)"
+    ]
+  },
+  "eval_feedback": {
+    "suggestions": [
+      "Assertion #1 варто зробити вимірюваною: «≥95% рядків мають файл + розділ/§/endpoint», інакше межа PASS/FAIL суб'єктивна.",
+      "Немає assertion про overlap: 02 каже «AIRCRAFT / TIME_WINDOW gates», 06 — лише TIME_WINDOW, а 03 — 409 «scheduling conflict». Сильний план має позначити це як суперечність, а не вибирати 422 TIME_WINDOW мовчки — варто додати перевірку.",
+      "Немає assertion про ізоляцію даних операторів (401/403) і про A-7 curfew override (23:00–05:00 для KBP/ODS) — це ключові P1-правила, на яких легко помилитися.",
+      "Assertion #4 можна посилити: вимагати, щоб cancel APPROVED < 2 год очікувався як 409 (не 422) — це окреме дискримінуюче правило з 02."
+    ],
+    "overall": "Дуже сильний, детальний план: 167 трасованих сценаріїв зі статусами Ready/Blocked/Needs clarification, коректні пороги та rule_reference, 27 знахідок у docs (включно з F-1 403 vs 05, F-2/F-3 overlap, F-12 08 vs 03). Фактичних помилок у даних не знайдено; лише дрібні непослідовності (TS-REV-05, TS-REV-06)."
+  }
+}

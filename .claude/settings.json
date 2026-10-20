@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(../skypermit/**)",
+      "Edit(//c/Users/Lenovo/genai-course/workspace/skypermit/**)",
+      "Write(../skypermit/**)",
+      "Write(//c/Users/Lenovo/genai-course/workspace/skypermit/**)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  }
+}

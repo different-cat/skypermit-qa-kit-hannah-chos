@@ -1,0 +1,1 @@
+{"eval_id":1,"eval_name":"gate-pipeline","prompt":"Потрібен тест-план для гейтів (PILOT, AIRCRAFT, ZONE, TIME_WINDOW) і ендпоінтів validate/submit. Хочу, щоб граничні значення були розписані детально.","assertions":[]}

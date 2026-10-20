@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {"text": "Реєстрація завжди створює оператора з L1, поля authorisation_level у формі немає", "passed": true, "evidence": "TC-REG-03 'authorisation_level = L1' (API-AUTH «authorisation_level is no longer self-service»; FE); TC-REG-05 'Поля для вибору authorisation_level немає' (FE «Operator portal»); TC-REG-04 покриває підкладений L3."},
+    {"text": "Розрізнено 401 (немає сесії) і 403 (чужий ресурс)", "passed": true, "evidence": "§5.3.1 TC-ACC-01..04 '401' без cookies і без X-Reviewer-Id; §5.3.2 TC-ACC-10..17 '403' для чужого пілота/дрона/оператора/заявки/submit/validate/cancel."},
+    {"text": "Покрито reviewer-or-owner reads (X-Reviewer-Id бачить ресурси будь-якого оператора)", "passed": true, "evidence": "TC-ACC-40 'Без сесії, з X-Reviewer-Id: GET /pilots/{PIL-B}, /aircraft/{AC-B}, /operators/{OP-B}, /flight-requests/{FR-B-UR}, POST .../validate — успішні відповіді; validate не змінює стан'; TC-ACC-41 — рев'юер бачить заявки всіх операторів + фільтр operator_id."},
+    {"text": "Статус-код/тіло для SUSPENDED не задано як очікуване — Blocked через 05 (OQ-4)", "passed": true, "evidence": "Примітка §5.4: 'код і тіло **не** вказуються'; TC-SUS-01/02/04 'Код і тіло не визначені' — **Blocked** (OQ рядок 4); Q-13 посилається на 05 §1."},
+    {"text": "Є твердження, що SUSPENDED НЕ повертається як 422 з failing_gate", "passed": true, "evidence": "Примітка §5.4: 'відповідь **не** має бути 422 з failing_gate (05 §1, 07 п. 3)'; TC-SUS-01..04 перевіряють 'не 422'; TC-SUS-03 явно 'не 422 з failing_gate = PILOT'."},
+    {"text": "Зафіксовано суперечність 03 (403 для SUSPENDED) vs 05 (не визначено)", "passed": true, "evidence": "F-01: '03-api-contract.md («Error semantics») описує 403 для SUSPENDED як «pre-existing precondition», ніби це вирішено, а 05 §1 тримає питання відкритим і називає 403 лише placeholder'."},
+    {"text": "Кожен сценарій має джерело (файл + розділ)", "passed": true, "evidence": "Кожен TC має заповнену колонку Джерело з абревіатурою, яку §2 зіставляє з файлом + розділом (API-AUTH = 03 «Authentication & authorisation», FE = 04 «Operator portal»/«Two contracts», OQ = 05 рядок 4 §1 тощо). Рядки-прогалини теж цитують файл/розділ, що мовчить (напр. TC-SUS-10 'FE (не описано); OQ §1'). Непряме посилання через легенду прийнятне, бо §2 визначає кожну абревіатуру."}
+  ],
+  "summary": {"passed": 7, "failed": 0, "total": 7, "pass_rate": 1.0},
+  "claims": [
+    {"claim": "Примітка §5.4: '403 у 03-api-contract.md — лише запропонований placeholder'", "type": "factual", "verified": false, "evidence": "03 Error semantics подає 403 для SUSPENDED-precondition як усталене; саме 05 §1 називає 403 'a reasonable placeholder to propose'. Примітка приписує формулювання 05 документу 03 (F-01 далі формулює правильно)."},
+    {"claim": "TC-AUTH-10 Ready: POST /auth/login як OP-B поверх активної сесії OP-A замінює сесію; /auth/me і /pilots повертають дані OP-B", "type": "factual", "verified": false, "evidence": "03 каже лише, що login 'sets the session cookie'; логін поверх наявної сесії не описано. Вигаданий очікуваний результат зі статусом Ready (with_skill коректно поставив це в Needs clarification, TS-AUTH-19)."},
+    {"claim": "TC-SUS-12 Ready: SUSPENDED-оператор при читанні чужих ресурсів отримує 403", "type": "factual", "verified": false, "evidence": "Власні TC-SUS-09/Q-14 плану кажуть, що читання для SUSPENDED не визначене; 05 §1 читання не охоплює. Статус Ready суперечить власному Q-14 (результат імовірно 403 у будь-якому разі, але з docs однозначно не виводиться)."}
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [
+      "TC-AUTH-11 (сесія переживає перезавантаження/нову вкладку) Ready — м'який висновок із 'session cookie', у docs не сказано.",
+      "TC-SUS-01/02/04 повністю Blocked, хоча їхні інваріанти (не створено / не 422) виводяться з docs — консервативно, але втрачаються виконувані перевірки; with_skill розділив це на Ready + Blocked рядки."
+    ],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [
+      "Assertions 1-6 задовольняють обидва рани; вони не розрізняють якість. Додати assertions на правильну класифікацію Ready / Blocked / Needs clarification (напр. повторний логін поверх сесії чи читання SUSPENDED-оператором не мають бути Ready).",
+      "Додати assertion на внутрішню суперечність 03: approve/reject без X-Reviewer-Id → 400 (03 Reviewer) vs визначення 401 (03 Error semantics). Обидва рани її знайшли, але ніщо це не перевіряє.",
+      "Assertion 7 бінарна на 'кожен сценарій'; варто явно дозволити рядкам-прогалинам цитувати файл+розділ, який мовчить."
+    ],
+    "overall": "Сильний план, проходить усі 7 assertions; джерела послідовно зіставлені через легенду в §2; тестові дані (DNI-OPN-1/KHR-OPN-4 L1, LVV-RST-2 RESTRICTED) збігаються з 06. Слабший за with_skill у строгості класифікації: кілька Ready-рядків з очікуваними результатами, що не виводяться з docs (TC-AUTH-10, TC-SUS-12), і неточне приписування слова 'placeholder' документу 03 у примітці §5.4. Немає знахідки про self-approve через X-Reviewer-Id (F-8 у with_skill)."
+  }
+}

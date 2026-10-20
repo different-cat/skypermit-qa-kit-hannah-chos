@@ -1,0 +1,31 @@
+{
+  "expectations": [
+    {"text": "Реєстрація завжди створює оператора з L1, поля authorisation_level у формі немає", "passed": true, "evidence": "TS-AUTH-03: 'Новий оператор завжди authorisation_level = L1, зокрема коли в тіло підкладено L3/L2' (03 «authorisation_level is no longer self-service»; 04). TS-AUTH-12: '/register ... поля authorisation_level немає'."},
+    {"text": "Розрізнено 401 (немає сесії) і 403 (чужий ресурс)", "passed": true, "evidence": "TS-AUTH-24 '∅ → 401 на кожному operator-scoped ендпоінті'; TS-AUTH-25..31 'B → ... → 403' для pilots/aircraft/flight-requests/operators/submit/cancel/validate; джерело 03 Enforcement / Error semantics."},
+    {"text": "Покрито reviewer-or-owner reads (X-Reviewer-Id бачить ресурси будь-якого оператора)", "passed": true, "evidence": "TS-AUTH-38 'R читає ресурси будь-якого оператора: GET /pilots/{id}, /aircraft/{id}, /operators/{id}, /flight-requests/{id} → 200; validate ... стан не змінився'; TS-AUTH-39 — список без scope + фільтр operator_id. Джерело 03 Reviewer-or-owner reads."},
+    {"text": "Статус-код/тіло для SUSPENDED не задано як очікуване — Blocked через 05 (OQ-4)", "passed": true, "evidence": "TS-SUSP-02/-04/-06 'Статус-код і тіло відповіді для create/submit/approve від S' — 'Blocked (OQ-4) — не визначено, див. 05 §1'; §10 зв'язує OQ-4 з цими сценаріями. Ready-рядки перевіряють лише 'не 2xx і не 422 з failing_gate'."},
+    {"text": "Є твердження, що SUSPENDED НЕ повертається як 422 з failing_gate", "passed": true, "evidence": "Вступ §5.4: 'запит блокується і **не** має бути 422 з failing_gate'; TS-SUSP-01/03/05 перевіряють 'відповідь ... не 422 з failing_gate' (05 §1; 07 п.3)."},
+    {"text": "Зафіксовано суперечність 03 (403 для SUSPENDED) vs 05 (не визначено)", "passed": true, "evidence": "F-1: '03 описує 403 як відповідь для SUSPENDED («or the pre-existing SUSPENDED-operator precondition»), а 05 каже, що код не визначено, і 403 — лише placeholder' (03 Error semantics vs 05 §1, 07 п.3); також TS-SUSP-07 і рядок ризику в §9."},
+    {"text": "Кожен сценарій має джерело (файл + розділ)", "passed": false, "evidence": "TS-AUTH-04 має Джерело '—' (ні файлу, ні розділу). Кілька інших рядків цитують лише файл без розділу: TS-AUTH-15 '03 не описує', TS-AUTH-19 '03 не описує', TS-AUTH-23 '04 не описує', TS-SUSP-18 '04 не описує'. Строго — не кожен сценарій має файл + розділ."}
+  ],
+  "summary": {"passed": 6, "failed": 1, "total": 7, "pass_rate": 0.86},
+  "claims": [
+    {"claim": "TS-SUSP-05 Ready: approve рев'юером заявки SUSPENDED-оператора блокується (стан лишається UNDER_REVIEW, ReviewAction не створено)", "type": "factual", "verified": false, "evidence": "05 §1 / 07 п.3 кажуть, що precondition стосується write-операцій 'create, submit, approve' для 'a suspended operator's request', але не уточнюють, чия суспензія блокує approve (approve виконує рев'юер, не оператор). Ран сам фіксує це як припущення в §9 ('Підтвердити в межах F-6'), але все одно ставить Ready — очікуваний результат частково спирається на припущення, а не на docs."}
+  ],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [
+      "TS-SUSP-05 позначено Ready, хоча він спирається на визнане в §9 припущення щодо інтерпретації.",
+      "TS-SUSP-01 стверджує 'відповідь не 2xx' як Ready — розумний висновок із 'blocked', але буквально в docs не сказано."
+    ],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [
+      "Assertions 1-6 задовольняють обидва рани; вони не розрізняють якість. Додати assertions на правильну класифікацію Ready / Blocked / Needs clarification (напр. approve заявки SUSPENDED-оператора не має бути Ready на припущенні; повторний логін поверх сесії не має бути Ready).",
+      "Додати assertion на внутрішню суперечність 03: approve/reject без X-Reviewer-Id → 400 (03 Reviewer) vs визначення 401 (03 Error semantics). Обидва рани її знайшли, але ніщо це не перевіряє.",
+      "Assertion 7 бінарна на 'кожен сценарій'; варто явно дозволити рядкам-прогалинам цитувати файл+розділ, який мовчить, інакше такі рядки підштовхують до '—'."
+    ],
+    "overall": "Дуже сильний, добре обґрунтований план. Тестові дані (R_BASIC, 500 g → C0, DNI-OPN-1 L1 без curfew, вікно +24 год vs lead time 6 год, currency 18 міс., дедлайн cancel 2 год, 121 м > стелі 120 м з ZC-2026.1 §2, коміт 78407f1, міграції 0001–0004) перевірено за docs/CLAUDE.md — збігаються. Чітке розділення Ready-інваріантів і Blocked(OQ-4) коду/тіла. Провалює лише строгу assertion про джерела через один рядок '—' (TS-AUTH-04). Єдиний помітний перегин — TS-SUSP-05 Ready на припущенні. Додатково знайдено цінні знахідки F-8 (self-approve через X-Reviewer-Id) і F-9 (чужий pilot_id/aircraft_id)."
+  }
+}

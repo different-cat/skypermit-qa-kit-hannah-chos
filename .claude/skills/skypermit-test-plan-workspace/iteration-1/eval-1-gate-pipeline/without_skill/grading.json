@@ -1,0 +1,30 @@
+{"expectations":[
+{"text":"Weight band очікує failing_gate AIRCRAFT з rule_reference ZC-2026.1 §2","passed":true,"evidence":"6.2 header 'rule_reference = ZC-2026.1 §2'; GP-AIR-003/006/009/014 'fail AIRCRAFT, ZC-2026.1 §2'; GP-AIR-020 checks AIRCRAFT not ZONE; GP-AIR-021 shared citation disambiguated by failing_gate."},
+{"text":"Curfew для KBP-CTR-3/ODS-CTR-5 = 23:00–05:00 з rule_reference A-7 §1","passed":true,"evidence":"6.4.4: 'KBP-CTR-3, ODS-CTR-5 — 23:00–05:00 (за A-7...)'; GP-TW-032/034/036 'fail TIME_WINDOW, A-7 §1'; GP-TW-039/040 A-7 vs base regression; GP-TW-049 repeats for ODS-CTR-5."},
+{"text":"Currency = 18 місяців, перевіряється проти window_start (не submission)","passed":true,"evidence":"6.1.2 rule statement; GP-PIL-024 'Протухає між T і WS ... fail PILOT, OH-1 §2.3 (актуальна на момент подання, але не на WS)'; GP-PIL-026 v1.4 24-month regression."},
+{"text":"Граничні маси бендів 900/3500/12000 г розписані з сусідніми значеннями","passed":true,"evidence":"GP-AIR-002/003 900/901 (ZTM-RST-7), 005/006 3500/3501 (LVV-RST-2), 008/009 12000/12001 (KBP-CTR-3), 010 ODS; the §7 boundary matrix summarises them."},
+{"text":"Межі тривалості 15 і 240 хв (включно) з 14/241","passed":true,"evidence":"GP-TW-020..025: 14 fail, 15/16/239/240 pass, 241 fail, with TSD-4 §3."},
+{"text":"Межі lead time 6 год і advance 60 днів","passed":true,"evidence":"GP-TW-001..003 5:59 fail / 6:00 pass / 6:01 pass (Ready). GP-TW-010 59d 23:59 pass (Ready), GP-TW-011 exactly 60d pass (expected result given, DST/calendar-day nuance flagged OQ-8), GP-TW-012 60d+1min fail, GP-TW-013 61d fail (Ready)."},
+{"text":"Є сценарії first-failure (заявка валить кілька гейтів → лише перший)","passed":true,"evidence":"6.5 decision table GP-ORD-001..008 with concrete data (e.g. ORD-001 all four fail → PILOT; ORD-003 → AIRCRAFT; ORD-004 → ZONE); GP-ORD-010 exactly one failing_gate."},
+{"text":"Overlap: дотик меж не є перетином; враховуються лише APPROVED/UNDER_REVIEW","passed":true,"evidence":"GP-TW-070/071/078 touching → pass; 072–077 APPROVED/UNDER_REVIEW overlap → fail (code flagged OQ-11); 079–081 DRAFT/REJECTED/CANCELLED → pass; 082 COMPLETED → pass (Blocked only on data preparation, OQ-12); 083 other aircraft → pass."},
+{"text":"Цитата для неактивної зони позначена як не підтверджена (05 №5)","passed":true,"evidence":"6.3.3 header 'rule_reference = ZC-2026.1 §4, цитата не підтверджена'; GP-ZON-040 fail ZONE, with the citation recorded only as an observation (05 row 5); §8 lists 05-5 as Open."},
+{"text":"Кожен сценарій має джерело (файл + розділ)","passed":false,"evidence":"Test-case tables have no per-row source column. Sources sit in section headings (e.g. '6.2 ... (06 §1.2, §3; 07 п.1)') and in the §11 traceability matrix, and only some rows have inline citations. Several groups lack a section-level citation: 6.1.3 and 6.4.6 have no own source; 6.8 cites bare '02' with no section; GP-SUB-016 and GP-AIR-032 have no source. Under strict reading, per-scenario file+section sourcing is not met."}
+],
+"summary":{"passed":9,"failed":1,"total":10,"pass_rate":0.9},
+"timing":{"executor_duration_seconds":363.0,"total_duration_seconds":363.0},
+"claims":[
+{"claim":"Zone ceilings 45/60/90/120 m, bands, required levels L1/L2/L3 and curfews per zone","type":"factual","verified":true,"evidence":"All values used in GP-ZON-*, GP-AIR-*, GP-TW-* match 06 §4."},
+{"claim":"rule_reference list of 12 gate conditions in GP-422-001","type":"factual","verified":true,"evidence":"Matches 06 §6 verbatim, including the shared ZC-2026.1 §2 and the unconfirmed ZC-2026.1 §4."},
+{"claim":"Combined-boundary green case GP-TW-092 (DNI-OPN-1, OP-L1, R_BASIC, 30 000 g, 120 m, 240 min, lead 6h01) → pass","type":"factual","verified":true,"evidence":"OPEN accepts R_BASIC, C3 is permitted, ceiling is 120, L1 is required, no curfew; all within 06 limits."},
+{"claim":"Pickers do not pre-filter (GP-UI-001)","type":"factual","verified":true,"evidence":"04 'The form does not pre-filter.'"},
+{"claim":"Maintenance-completion endpoint is absent from 03 (OQ-12)","type":"factual","verified":true,"evidence":"02 references it; 03's endpoint list has none. This is a correct gap that the with_skill run missed."},
+{"claim":"Overlap conflict 02 (AIRCRAFT/TIME_WINDOW) vs 03 (409) vs 06 (422 TIME_WINDOW, TSD-4 §5) (OQ-11); validate response shape conflict 03 vs 04 vs 08 (OQ-2)","type":"factual","verified":true,"evidence":"Wording present in the cited docs."},
+{"claim":"submit tested 'з кожного з 7 станів' (§5)","type":"quality","verified":false,"evidence":"SUBMITTED is transient and not observable at rest (02). The plan in fact tests only 6 states (DRAFT plus GP-SUB-005..009), so the '7 states' wording is slightly inaccurate. This is minor."}
+],
+"user_notes_summary":{"uncertainties":["Zone time zone/DST undocumented (OQ-1)","validate response shape (OQ-2)"],"needs_review":["18 new open questions OQ-1..OQ-18 plus 05 rows 4 and 5"],"workarounds":["ENV-2..ENV-6 out-of-band data setup; DB read for AuditLog"]},
+"eval_feedback":{"suggestions":[
+{"assertion":"Кожен сценарій має джерело (файл + розділ)","reason":"Say whether section-level sources plus a traceability matrix are acceptable. This run fails only on that interpretation."},
+{"reason":"No assertion checks that the real doc conflicts (overlap 409 vs 422, SUSPENDED 403 in 03 vs open in 05) are flagged rather than resolved by guessing."},
+{"reason":"No assertion penalises invented expected values (curfew boundary inclusivity, validate shape). Add a negative assertion so that runs which invent these values fail."}
+],"overall":"Accurate and thorough. Its boundary coverage is slightly deeper than the skill run (advance 59d23:59/60d/60d+1m, altitude ceiling−1), and it correctly flags the missing completion endpoint. It is weaker on per-scenario source traceability and on structure (no per-row source/technique columns, no summary counts)."}
+}
